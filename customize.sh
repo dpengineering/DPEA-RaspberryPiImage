@@ -1,9 +1,12 @@
-#!/bin/bash -e
+#!/bin/bash
 # DPEA image customizations. Runs INSIDE the mounted image chroot (see build-image.sh),
 # and inside the CI validation container (see .github/workflows/validate.yml).
 # Expects /tmp/packages.txt already copied in, and the NetworkManager profile
 # already placed at /etc/NetworkManager/system-connections/dpea-eth0.nmconnection.
 
+# Both callers invoke this as `bash customize.sh`, which ignores the shebang's
+# flags, so set the strict flags in the body or a failed step is silently skipped.
+set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 # --- shared non-Python system packages ---
@@ -25,7 +28,17 @@ grep -q '^i2c-dev' /etc/modules || echo 'i2c-dev' >> /etc/modules
 AVAHI_DEB_URL="${AVAHI_DEB_URL:-https://github.com/dpengineering/avahi_0.8/releases/latest/download/avahi-dpea_0.8_arm64.deb}"
 if curl -fLsS "$AVAHI_DEB_URL" -o /tmp/avahi.deb; then
 	apt-get install -y /tmp/avahi.deb
-	echo 'avahi-daemon hold' | dpkg --set-selections || true
+	# The stock RPi OS Desktop base already ships avahi, so the .deb must overwrite
+	# its files (it declares Replaces: for them). A dpkg file-overwrite conflict can
+	# leave the package uninstalled while apt still exits 0, so assert it is actually
+	# present instead of trusting the exit code.
+	dpkg -s avahi-dpea >/dev/null 2>&1 \
+		|| { echo "ERROR: avahi-dpea did not install (dpkg file conflict / missing Replaces:?)" >&2; exit 1; }
+	# Refresh the linker cache so the patched libavahi-core (mDNS on 5358) it just
+	# dropped in is the one the daemon loads, not the stock lib it overwrote.
+	ldconfig
+	# Hold both so an apt upgrade cannot restore the stock 5353 build over ours.
+	apt-mark hold avahi-daemon avahi-dpea >/dev/null 2>&1 || true
 	rm -f /tmp/avahi.deb
 else
 	echo "ERROR: prebuilt 5358 avahi .deb not found at $AVAHI_DEB_URL" >&2
