@@ -1,0 +1,30 @@
+# DPEA Raspberry Pi image: shared apt packages (single source of truth)
+# ----------------------------------------------------------------------
+# NON-Python OS packages ONLY. Every Python library (kivy, pidev, dpeaDPi,
+# RPi.GPIO, spidev, smbus2, adafruit-*) is a per-repo uv dependency declared in
+# that repo's pyproject.toml. apt python3-* packages do NOT populate a uv venv,
+# so they never belong here.
+#
+# Read by build-image.sh (image build) and provision.sh (a running Pi). Lines
+# starting with # and blank lines are ignored. Keep this list documented in
+# README.md.
+
+# --- core ---
+git
+curl
+ca-certificates
+
+# --- I2C / SPI bus tooling (SlushEngine + DPi boards) ---
+i2c-tools
+
+# --- kivy runtime: SDL2 + multitouch + GL (the kivy wheel links these at runtime) ---
+libsdl2-2.0-0
+libsdl2-image-2.0-0
+libsdl2-mixer-2.0-0
+libsdl2-ttf-2.0-0
+libmtdev1
+libgl1-mesa-dri
+
+# --- mDNS / .local name resolution (client-side NSS glue; the patched 5358
+#     avahi daemon itself is installed separately from a prebuilt .deb) ---
+libnss-mdns

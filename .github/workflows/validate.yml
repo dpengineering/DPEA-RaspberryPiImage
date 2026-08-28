@@ -1,0 +1,50 @@
+# PR validation: make sure a change would still produce a working image before it
+# merges to main. Much cheaper than a full build: it runs the customization in a
+# container, not a full loop-mounted image.
+
+name: validate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck -S error build-image.sh customize.sh provision.sh lib/common.sh hardware-smoke-test.sh
+
+  customize-in-container:
+    runs-on: ubuntu-24.04-arm      # native arm64 container
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run customize.sh in an arm64 Bookworm container and assert
+        run: |
+          docker run --rm -v "$PWD:/src" \
+            arm64v8/debian:bookworm bash -euo pipefail -c '
+              apt-get update
+              apt-get install -y --no-install-recommends curl ca-certificates iproute2 procps dbus
+              mkdir -p /boot/firmware && : > /boot/firmware/config.txt
+              cp /src/packages.txt /tmp/packages.txt
+              install -d -m 700 /etc/NetworkManager/system-connections
+              install -m 600 /src/files/dpea-eth0.nmconnection \
+                /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
+              bash /src/customize.sh
+              echo "===== assertions ====="
+              fail=0
+              command -v uv >/dev/null && echo "OK   uv $(uv --version)" || { echo "FAIL uv"; fail=1; }
+              dpkg -s avahi-dpea >/dev/null 2>&1 && echo "OK   avahi-dpea installed" || { echo "FAIL avahi-dpea"; fail=1; }
+              for line in "dtparam=i2c_arm=on" "dtparam=spi=on" "enable_uart=1" "dtoverlay=disable-bt"; do
+                grep -qx "$line" /boot/firmware/config.txt && echo "OK   config: $line" || { echo "FAIL config: $line"; fail=1; }
+              done
+              test -f /etc/NetworkManager/system-connections/dpea-eth0.nmconnection \
+                && echo "OK   eth0 profile present" || { echo "FAIL eth0 profile"; fail=1; }
+              # best-effort: mDNS binds 5358 (a container may not let the daemon start; verify on hardware)
+              (service dbus start >/dev/null 2>&1 || true; avahi-daemon -D >/dev/null 2>&1 || true; sleep 2)
+              if ss -lun 2>/dev/null | grep -q ":5358"; then echo "OK   avahi listening on 5358"
+              else echo "WARN could not confirm 5358 in container (verify on hardware)"; fi
+              exit $fail
+            '

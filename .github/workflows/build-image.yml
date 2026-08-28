@@ -1,0 +1,45 @@
+# Build + publish the DPEA Pi image.
+# Rebuilds when an image-affecting file changes on main, and on demand.
+# Customizes the stock Raspberry Pi OS image (see build-image.sh) on a native
+# arm64 runner, so the chroot's arm64 binaries run natively. Requires the 5358
+# avahi .deb published by the avahi_0.8 repo's CI.
+
+name: build-dpea-pi-image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - packages.txt
+      - customize.sh
+      - files/**
+      - build-image.sh
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk + install tools
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          df -h
+          sudo apt-get update
+          sudo apt-get install -y xz-utils parted e2fsprogs curl
+
+      - name: Build image
+        run: sudo -E ./build-image.sh
+
+      - name: Publish latest Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="dpea-pi-$(date +%Y%m%d-%H%M)"
+          gh release create "$TAG" .build/*.img.xz \
+            --repo "$GITHUB_REPOSITORY" --title "$TAG" \
+            --notes "Auto-built DPEA Pi image from ${GITHUB_SHA::7}" --latest
