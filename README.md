@@ -17,8 +17,8 @@ dependencies and installs them with `uv`.
 
 ### Shared apt packages (`packages.txt`)
 
-`packages.txt` is the single source of truth, read by `build-image.sh` and
-`provision.sh`. Current contents:
+`packages.txt` is the single source of truth, read during the image build.
+Current contents:
 
 - core: `git`, `curl`, `ca-certificates`
 - I2C/SPI: `i2c-tools`
@@ -89,8 +89,6 @@ you can reach `172.17.21.2`.
 | `build-image.sh`                    | download + grow + loop-mount + chroot-customize the stock image into `.img.xz` |
 | `customize.sh`                      | the steps run inside the image chroot                                        |
 | `files/dpea-eth0.nmconnection`      | baked NetworkManager profile (eth0 DHCP + static)                            |
-| `provision.sh`                      | apply the same config to an already-running Pi (no reflash)                  |
-| `lib/common.sh`                     | shared shell helpers for `provision.sh`                                      |
 | `hardware-smoke-test.sh`            | on-Pi smoke test of the baked config                                         |
 | `imager-launchers/`                 | double-click launchers that open Imager with the DPEA OS list                |
 | `.github/workflows/build-image.yml` | build + publish the image + `os-list.json`                                   |
