@@ -3,7 +3,7 @@
 # Sourced by provision.sh to configure a running Pi. The image bakes the same
 # choices at build time via customize.sh.
 #
-# Target: Raspberry Pi OS Bookworm, 64-bit (aarch64).
+# Target: Raspberry Pi OS Trixie, 64-bit (aarch64).
 #
 # Layering rule:
 #   apt / packages.txt   -> NON-Python OS libraries only (SDL2, i2c-tools, ...).
@@ -31,7 +31,7 @@ dpea_install_packages() {
 
 dpea_enable_interfaces() {
   # I2C, SPI, and the serial *hardware* (not the login console). Needs a recent
-  # raspi-config (ships on Bookworm). In a build chroot, edit config.txt directly.
+  # raspi-config (ships on Raspberry Pi OS). In a build chroot, edit config.txt directly.
   raspi-config nonint do_i2c 0
   raspi-config nonint do_spi 0
   raspi-config nonint do_serial_hw 0

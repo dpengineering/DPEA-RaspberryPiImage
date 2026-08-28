@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-24.04-arm      # native arm64 container
     steps:
       - uses: actions/checkout@v4
-      - name: Run customize.sh in an arm64 Bookworm container and assert
+      - name: Run customize.sh in an arm64 Trixie container and assert
         run: |
           docker run --rm -v "$PWD:/src" \
-            arm64v8/debian:bookworm bash -euo pipefail -c '
+            arm64v8/debian:trixie bash -euo pipefail -c '
               apt-get update
               apt-get install -y --no-install-recommends curl ca-certificates iproute2 procps dbus
               mkdir -p /boot/firmware && : > /boot/firmware/config.txt
