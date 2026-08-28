@@ -15,6 +15,7 @@ on:
       - customize.sh
       - files/**
       - build-image.sh
+      - .github/workflows/**
 
 permissions:
   contents: write
