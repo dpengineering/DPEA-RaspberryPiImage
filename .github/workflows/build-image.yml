@@ -35,11 +35,10 @@ jobs:
       - name: Build image
         run: sudo -E ./build-image.sh
 
-      - name: Publish image + Imager OS list
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Generate Imager OS list
         run: |
           set -euo pipefail
+          sudo chown -R "$(id -u):$(id -g)" .build   # build-image.sh ran as root
           . .build/image-meta.env
           TAG="dpea-pi-$(date +%Y%m%d-%H%M)"
           IMG_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${IMG_FILE}"
@@ -62,6 +61,16 @@ jobs:
                extract_sha256: $sha,
                image_download_size: $dsize
              } ] }' > .build/os-list.json
+          jq . .build/os-list.json > /dev/null && echo "os-list.json is valid JSON"
+          echo "TAG=$TAG"           >> "$GITHUB_ENV"
+          echo "IMG_FILE=$IMG_FILE" >> "$GITHUB_ENV"
+
+      - name: Publish latest Release
+        if: github.event_name != 'pull_request'   # publish on push + manual dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
           gh release create "$TAG" ".build/${IMG_FILE}" .build/os-list.json \
             --repo "$GITHUB_REPOSITORY" --title "$TAG" \
             --notes "Auto-built DPEA Pi image from ${GITHUB_SHA::7}" --latest
