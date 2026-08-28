@@ -27,7 +27,15 @@ grep -q '^i2c-dev' /etc/modules || echo 'i2c-dev' >> /etc/modules
 # --- patched avahi (mDNS on 5358) from the prebuilt arm64 .deb (avahi_0.8 CI) ---
 AVAHI_DEB_URL="${AVAHI_DEB_URL:-https://github.com/dpengineering/avahi_0.8/releases/latest/download/avahi-dpea_0.8_arm64.deb}"
 if curl -fLsS "$AVAHI_DEB_URL" -o /tmp/avahi.deb; then
-	apt-get install -y /tmp/avahi.deb
+	# The .deb Replaces stock avahi and ships /etc/avahi/avahi-daemon.conf as a
+	# conffile. The base image's copy is RPi-modified, so dpkg would raise an
+	# interactive conffile prompt and abort with "end of file on stdin" in this
+	# non-interactive chroot. --force-confold keeps the base config (our 5358 patch
+	# is in the binary/lib, not the conf), --force-confdef handles the rest.
+	apt-get install -y \
+		-o Dpkg::Options::=--force-confdef \
+		-o Dpkg::Options::=--force-confold \
+		/tmp/avahi.deb
 	# The stock RPi OS Desktop base already ships avahi, so the .deb must overwrite
 	# its files (it declares Replaces: for them). A dpkg file-overwrite conflict can
 	# leave the package uninstalled while apt still exits 0, so assert it is actually

@@ -38,6 +38,11 @@ jobs:
               # surfaces on the real image build. Installing stock avahi first makes CI
               # reproduce that conflict, which is the whole point of this gate.
               apt-get install -y avahi-daemon libnss-mdns
+              # The real base image also ships an RPi-MODIFIED avahi-daemon.conf, so
+              # replacing it triggers an interactive dpkg conffile prompt that aborts a
+              # non-interactive install. Dirty the conffile here so CI reproduces that
+              # too, not just the file-overwrite conflict.
+              echo '# dpea-ci: simulate a base-image modified conffile' >> /etc/avahi/avahi-daemon.conf
               bash /src/customize.sh
               echo "===== assertions ====="
               fail=0
