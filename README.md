@@ -7,7 +7,7 @@ dependencies and installs them with `uv`.
 
 ## What the image bakes in
 
-- **OS**: Raspberry Pi OS Bookworm 64-bit (arm64), Desktop
+- **OS**: Raspberry Pi OS Trixie 64-bit (arm64), Desktop
 - **Hardware**: I2C, SPI, and UART enabled. `dtoverlay=disable-bt` so
   `/dev/serial0` is the PL011 UART for the SlushEngine / DPi bus. `i2c-dev` loaded.
 - **Networking (`eth0`)**: DHCP for internet, plus an always-on static
@@ -50,7 +50,7 @@ a specific Raspberry Pi OS release for reproducibility.
 
 ### In CI, on every PR (`.github/workflows/validate.yml`)
 
-Runs `shellcheck`, then runs `customize.sh` inside an arm64 Bookworm container
+Runs `shellcheck`, then runs `customize.sh` inside an arm64 Trixie container
 and asserts what can be checked without hardware: `uv` present, the 5358 avahi
 `.deb` installed, the I2C/SPI/UART lines written, and the eth0 NetworkManager
 profile present. This gates merges to `main`.

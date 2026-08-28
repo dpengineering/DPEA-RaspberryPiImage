@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Provision a running DPEA Raspberry Pi from stock Raspberry Pi OS 64-bit (Bookworm).
+# Provision a running DPEA Raspberry Pi from stock Raspberry Pi OS 64-bit (Trixie).
 # Idempotent: safe to re-run. Run with sudo.
 #
 #   sudo ./provision.sh [--hostname arnav-pi]

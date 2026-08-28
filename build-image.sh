@@ -18,7 +18,7 @@ WORK="${WORK:-$HERE/.build}"
 
 # Stock Raspberry Pi OS (arm64, desktop). PIN a dated release for reproducibility;
 # check https://downloads.raspberrypi.com/raspios_arm64/images/ for the current one.
-BASE_URL="${BASE_URL:-https://downloads.raspberrypi.com/raspios_arm64/images/raspios_arm64-2025-05-13/2025-05-13-raspios-bookworm-arm64.img.xz}"
+BASE_URL="${BASE_URL:-https://downloads.raspberrypi.com/raspios_arm64/images/raspios_arm64-2026-06-19/2026-06-18-raspios-trixie-arm64.img.xz}"
 GROW_MB="${GROW_MB:-2048}"        # headroom for our added packages
 OUT_IMG="$WORK/dpea-pi-$(date +%Y%m%d).img"
 
