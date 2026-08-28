@@ -63,5 +63,18 @@ rm -f "$MNT/tmp/customize.sh"
 
 # --- unmount (via trap) + compress ---
 cleanup; trap - EXIT
+
+# Record metadata for the Raspberry Pi Imager OS list (os-list.json, built by CI):
+# the sha256 + size are of the UNCOMPRESSED image, which Imager verifies.
+EXTRACT_SIZE="$(stat -c%s "$OUT_IMG")"
+EXTRACT_SHA256="$(sha256sum "$OUT_IMG" | awk '{print $1}')"
 xz -T0 -f "$OUT_IMG"
+{
+	echo "IMG_FILE=$(basename "${OUT_IMG}.xz")"
+	echo "EXTRACT_SIZE=${EXTRACT_SIZE}"
+	echo "EXTRACT_SHA256=${EXTRACT_SHA256}"
+	echo "IMAGE_DOWNLOAD_SIZE=$(stat -c%s "${OUT_IMG}.xz")"
+} > "$WORK/image-meta.env"
+
 echo "Image: ${OUT_IMG}.xz"
+echo "Meta:  $WORK/image-meta.env"

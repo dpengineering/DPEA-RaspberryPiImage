@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=DPEA Pi Imager
+Comment=Raspberry Pi Imager preloaded with the DPEA image list
+Exec=rpi-imager --repo https://github.com/dpengineering/DPEA-RaspberryPiImage/releases/latest/download/os-list.json
+Icon=rpi-imager
+Terminal=false
+Categories=Utility;

@@ -35,11 +35,33 @@ jobs:
       - name: Build image
         run: sudo -E ./build-image.sh
 
-      - name: Publish latest Release
+      - name: Publish image + Imager OS list
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          . .build/image-meta.env
           TAG="dpea-pi-$(date +%Y%m%d-%H%M)"
-          gh release create "$TAG" .build/*.img.xz \
+          IMG_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${IMG_FILE}"
+          # os-list.json = a Raspberry Pi Imager repo with one entry. init_format
+          # enables the Customisation panel; the constant asset name means
+          # .../releases/latest/download/os-list.json is a stable URL for Imager.
+          jq -n \
+            --arg url "$IMG_URL" \
+            --arg date "$(date +%Y-%m-%d)" \
+            --arg sha "$EXTRACT_SHA256" \
+            --argjson esize "$EXTRACT_SIZE" \
+            --argjson dsize "$IMAGE_DOWNLOAD_SIZE" \
+            '{os_list: [ {
+               name: "DPEA Pi",
+               description: "DPEA exhibit base image (Raspberry Pi OS Trixie 64-bit + DPEA config)",
+               url: $url,
+               release_date: $date,
+               init_format: "systemd",
+               extract_size: $esize,
+               extract_sha256: $sha,
+               image_download_size: $dsize
+             } ] }' > .build/os-list.json
+          gh release create "$TAG" ".build/${IMG_FILE}" .build/os-list.json \
             --repo "$GITHUB_REPOSITORY" --title "$TAG" \
             --notes "Auto-built DPEA Pi image from ${GITHUB_SHA::7}" --latest

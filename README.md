@@ -42,9 +42,23 @@ demand, then publishes the result as this repo's latest Release. It runs
 `build-image.sh`, which customizes the stock Raspberry Pi OS image: download,
 grow, loop-mount, run `customize.sh` in a chroot (packages, avahi, uv, config),
 recompress. It runs on a native arm64 runner (free while this repo is public), so
-the chroot's arm64 binaries run natively. No default user is baked. Set user +
-hostname + wifi in the Imager at flash time. Pin `BASE_URL` in `build-image.sh` to
-a specific Raspberry Pi OS release for reproducibility.
+the chroot's arm64 binaries run natively. No default user is baked. Pin `BASE_URL`
+in `build-image.sh` to a specific Raspberry Pi OS release for reproducibility.
+
+The same job also publishes `os-list.json` (a Raspberry Pi Imager OS list) to the
+release, so it is served at a stable URL:
+`https://github.com/dpengineering/DPEA-RaspberryPiImage/releases/latest/download/os-list.json`.
+
+## Flashing
+
+Launch Imager pointed at that OS list so "DPEA Pi" appears with the Customisation
+panel enabled (hostname, SSH, user, wifi):
+```
+rpi-imager --repo https://github.com/dpengineering/DPEA-RaspberryPiImage/releases/latest/download/os-list.json
+```
+`imager-launchers/` has double-click wrappers of that command for macOS / Windows
+/ Linux, meant to be handed to students (e.g. from the student setup repo). The
+repo is public, so no GitHub account is needed to download the image.
 
 ## Testing
 
@@ -78,7 +92,8 @@ you can reach `172.17.21.2`.
 | `provision.sh`                      | apply the same config to an already-running Pi (no reflash)                  |
 | `lib/common.sh`                     | shared shell helpers for `provision.sh`                                      |
 | `hardware-smoke-test.sh`            | on-Pi smoke test of the baked config                                         |
-| `.github/workflows/build-image.yml` | build + publish the image                                                    |
+| `imager-launchers/`                 | double-click launchers that open Imager with the DPEA OS list                |
+| `.github/workflows/build-image.yml` | build + publish the image + `os-list.json`                                   |
 | `.github/workflows/validate.yml`    | PR checks (shellcheck + container validation)                                |
 
 The patched avahi `.deb` lives in the `avahi_0.8` repo, not here.
