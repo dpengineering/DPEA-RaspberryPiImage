@@ -25,6 +25,7 @@ Current contents:
 
 - core: `git`, `curl`, `ca-certificates`
 - I2C: `i2c-tools`
+- rpi-lgpio build toolchain (lgpio compiles from source at `uv sync`): `swig`, `python3-dev`, `liblgpio-dev`
 - kivy runtime: `libsdl2-2.0-0`, `libsdl2-image-2.0-0`, `libsdl2-mixer-2.0-0`, `libsdl2-ttf-2.0-0`, `libmtdev1`, `libgl1-mesa-dri`
 - mDNS resolution: `libnss-mdns`
 
