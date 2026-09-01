@@ -13,4 +13,4 @@ address1=172.17.21.2/22
 may-fail=true
 
 [ipv6]
-method=auto
+method=link-local
