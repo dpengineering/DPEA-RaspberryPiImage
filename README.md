@@ -8,8 +8,11 @@ dependencies and installs them with `uv`.
 ## What the image bakes in
 
 - **OS**: Raspberry Pi OS Trixie 64-bit (arm64), Desktop
-- **Hardware**: I2C, SPI, and UART enabled. `dtoverlay=disable-bt` so
-  `/dev/serial0` is the PL011 UART for the SlushEngine / DPi bus. `i2c-dev` loaded.
+- **Hardware**: I2C and UART enabled, SPI deliberately OFF. `dtoverlay=disable-bt`
+  so `/dev/serial0` is the PL011 UART for the SlushEngine / DPi bus, and the serial
+  login console is disabled so a getty does not fight that bus on the same port.
+  `i2c-dev` loaded. SPI stays off because the DPi computer uses GPIO7 (SPI0 CE1) as
+  a digital input, which an SPI overlay would claim ("GPIO busy").
 - **Networking (`eth0`)**: DHCP for internet, plus an always-on static
   `172.17.21.2/22` for a direct laptop-to-Pi cable.
 - **mDNS**: the patched avahi that serves mDNS on port **5358**.
@@ -21,7 +24,7 @@ dependencies and installs them with `uv`.
 Current contents:
 
 - core: `git`, `curl`, `ca-certificates`
-- I2C/SPI: `i2c-tools`
+- I2C: `i2c-tools`
 - kivy runtime: `libsdl2-2.0-0`, `libsdl2-image-2.0-0`, `libsdl2-mixer-2.0-0`, `libsdl2-ttf-2.0-0`, `libmtdev1`, `libgl1-mesa-dri`
 - mDNS resolution: `libnss-mdns`
 
@@ -66,20 +69,21 @@ repo is public, so no GitHub account is needed to download the image.
 
 Runs `shellcheck`, then runs `customize.sh` inside an arm64 Trixie container
 and asserts what can be checked without hardware: `uv` present, the 5358 avahi
-`.deb` installed, the I2C/SPI/UART lines written, and the eth0 NetworkManager
-profile present. This gates merges to `main`.
+`.deb` installed, the I2C/UART config lines written (and SPI *not* enabled), the
+serial getty masked, and the eth0 NetworkManager profile present. This gates
+merges to `main`.
 
 Container checks cannot exercise real hardware or multicast, so they do not cover
-actual I2C/SPI/UART function, live `.local` resolution, or the eth0 address
-coming up. Those need a flashed Pi.
+actual I2C/UART function, live `.local` resolution, or the eth0 address coming up.
+Those need a flashed Pi.
 
 ### On real hardware (`hardware-smoke-test.sh`)
 
 After flashing a Pi, run `sudo ./hardware-smoke-test.sh` on it. It checks: `uv`
-present, `/dev/i2c-*` and `/dev/spidev*` nodes, `/dev/serial0 -> ttyAMA0`, avahi
-listening on 5358 (and not 5353), and eth0 holding `172.17.21.2`. For the
-direct-cable path, set another machine's ethernet to `172.17.21.1` and confirm
-you can reach `172.17.21.2`.
+present, `/dev/i2c-*` present and no `/dev/spidev*` (SPI off), `/dev/serial0 ->
+ttyAMA0` with the serial login console off, avahi listening on 5358 (and not
+5353), and eth0 holding `172.17.21.2`. For the direct-cable path, set another
+machine's ethernet to `172.17.21.1` and confirm you can reach `172.17.21.2`.
 
 ## Files
 
