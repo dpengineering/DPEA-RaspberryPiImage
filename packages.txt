@@ -2,8 +2,10 @@
 # ----------------------------------------------------------------------
 # NON-Python OS packages ONLY. Every Python library (kivy, pidev, dpeaDPi,
 # RPi.GPIO, spidev, smbus2, adafruit-*) is a per-repo uv dependency declared in
-# that repo's pyproject.toml. apt python3-* packages do NOT populate a uv venv,
-# so they never belong here.
+# that repo's pyproject.toml. apt python3-* LIBRARY packages do NOT populate a uv
+# venv, so they never belong here. The lone exception is build tooling: python3-dev
+# ships the CPython headers used to COMPILE a C extension (e.g. lgpio) into a venv,
+# it is not itself a venv library.
 #
 # Read during the image build (build-image.sh copies it in, customize.sh installs
 # it). Lines starting with # and blank lines are ignored. Keep this list
@@ -14,8 +16,17 @@ git
 curl
 ca-certificates
 
-# --- I2C / SPI bus tooling (SlushEngine + DPi boards) ---
+# --- I2C bus tooling (SlushEngine + DPi boards; SPI is left off, see customize.sh) ---
 i2c-tools
+
+# --- rpi-lgpio build toolchain (DPi boards) ---
+# dpeaDPi imports RPi.GPIO, provided on modern Pi OS / Python 3.13 by rpi-lgpio,
+# whose lgpio dep has no aarch64 cp313 wheel and so compiles from source at
+# `uv sync` time. swig + python3-dev build the C extension, liblgpio-dev links it
+# (and pulls the runtime liblgpio shared lib). See the python3-dev note up top.
+swig
+python3-dev
+liblgpio-dev
 
 # --- kivy runtime: SDL2 + multitouch + GL (the kivy wheel links these at runtime) ---
 libsdl2-2.0-0
