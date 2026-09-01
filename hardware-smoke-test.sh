@@ -11,8 +11,9 @@ skip(){ echo "SKIP  $1 ($2)"; skipped=$((skipped+1)); }
 
 chk "uv installed"                "command -v uv"
 chk "I2C device node present"     "ls /dev/i2c-*"
-chk "SPI device node present"     "ls /dev/spidev*"
+chk "SPI off (no spidev; GPIO7 free for DPi)" "! ls /dev/spidev*"
 chk "/dev/serial0 -> ttyAMA0"     "[ \"\$(readlink -f /dev/serial0)\" = /dev/ttyAMA0 ]"
+chk "serial login console off"    "! systemctl is-active --quiet serial-getty@ttyAMA0.service"
 chk "avahi listening on 5358"     "ss -lun | grep -q ':5358'"
 chk "avahi NOT on 5353"           "! ss -lun | grep -q ':5353'"
 # The eth0 static (172.17.21.2) only activates when the link has carrier. Running

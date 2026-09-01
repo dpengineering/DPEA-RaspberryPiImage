@@ -53,9 +53,13 @@ jobs:
               dpkg -S /usr/sbin/avahi-daemon 2>/dev/null | grep -q '^avahi-dpea:' \
                 && echo "OK   /usr/sbin/avahi-daemon owned by avahi-dpea" \
                 || { echo "FAIL avahi-daemon binary not replaced by avahi-dpea"; fail=1; }
-              for line in "dtparam=i2c_arm=on" "dtparam=spi=on" "enable_uart=1" "dtoverlay=disable-bt"; do
+              for line in "dtparam=i2c_arm=on" "enable_uart=1" "dtoverlay=disable-bt"; do
                 grep -qx "$line" /boot/firmware/config.txt && echo "OK   config: $line" || { echo "FAIL config: $line"; fail=1; }
               done
+              # SPI must NOT be enabled: it would claim GPIO7 (SPI0 CE1), a DPi computer input.
+              grep -qx "dtparam=spi=on" /boot/firmware/config.txt && { echo "FAIL config: spi should be off"; fail=1; } || echo "OK   config: spi not enabled"
+              # serial login console masked so the DPi RS485 bus owns /dev/serial0.
+              test -L /etc/systemd/system/serial-getty@ttyAMA0.service && echo "OK   serial getty masked" || { echo "FAIL serial getty not masked"; fail=1; }
               test -f /etc/NetworkManager/system-connections/dpea-eth0.nmconnection \
                 && echo "OK   eth0 profile present" || { echo "FAIL eth0 profile"; fail=1; }
               # best-effort: mDNS binds 5358 (a container may not let the daemon start; verify on hardware)

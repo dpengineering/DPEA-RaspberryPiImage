@@ -16,13 +16,27 @@ apt-get install -y --no-install-recommends \
 	$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.txt)
 
 # --- hardware interfaces (edit config.txt directly) ---
+# SPI is deliberately NOT enabled: the DPi computer board uses GPIO7 (SPI0 CE1)
+# as a digital input (_IN_3_PIN), so an enabled SPI overlay claims that pin and
+# the board's GPIO.setup fails with "GPIO busy".
 CONFIG=/boot/firmware/config.txt
 [ -f "$CONFIG" ] || CONFIG=/boot/config.txt
 grep -q '^dtparam=i2c_arm=on'   "$CONFIG" || echo 'dtparam=i2c_arm=on'   >> "$CONFIG"
-grep -q '^dtparam=spi=on'       "$CONFIG" || echo 'dtparam=spi=on'       >> "$CONFIG"
 grep -q '^enable_uart=1'        "$CONFIG" || echo 'enable_uart=1'        >> "$CONFIG"
 grep -q '^dtoverlay=disable-bt' "$CONFIG" || echo 'dtoverlay=disable-bt' >> "$CONFIG"
 grep -q '^i2c-dev' /etc/modules || echo 'i2c-dev' >> /etc/modules
+
+# --- serial login console OFF (the UART hardware stays on via enable_uart above) ---
+# Raspberry Pi OS runs a getty on the serial console by default; it holds
+# /dev/serial0 open and fights the DPi RS485 bus (serial.Serial on /dev/serial0),
+# giving "device reports readiness to read but returned no data (multiple access
+# on port?)". Disable it two ways: drop the console= token from cmdline.txt, and
+# mask the serial getty. enable_uart=1 above keeps the UART itself available.
+CMDLINE=/boot/firmware/cmdline.txt
+[ -f "$CMDLINE" ] || CMDLINE=/boot/cmdline.txt
+[ -f "$CMDLINE" ] && sed -i -E 's/ ?console=(serial0|ttyAMA0|ttyS0),[0-9]+//g' "$CMDLINE"
+install -d /etc/systemd/system
+ln -sf /dev/null /etc/systemd/system/serial-getty@ttyAMA0.service
 
 # --- patched avahi (mDNS on 5358) from the prebuilt arm64 .deb (avahi_0.8 CI) ---
 AVAHI_DEB_URL="${AVAHI_DEB_URL:-https://github.com/dpengineering/avahi_0.8/releases/latest/download/avahi-dpea_0.8_arm64.deb}"
