@@ -5,9 +5,7 @@ interface-name=eth0
 autoconnect=true
 
 [ipv4]
-# DHCP for internet when plugged into a real network, PLUS an always-on static
-# for a direct laptop-to-Pi cable (set the laptop's ethernet to 172.17.21.1).
-# No gateway on the static, so it never competes for the default route.
+# The gateway-free static address supports direct connections without replacing DHCP's route.
 method=auto
 address1=172.17.21.2/22
 may-fail=true
