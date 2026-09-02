@@ -1,9 +1,3 @@
-# Build + publish the DPEA Pi image.
-# Rebuilds when an image-affecting file changes on main, and on demand.
-# Customizes the stock Raspberry Pi OS image (see build-image.sh) on a native
-# arm64 runner, so the chroot's arm64 binaries run natively. Requires the 5358
-# avahi .deb published by the avahi_0.8 repo's CI.
-
 name: build-dpea-pi-image
 
 on:
@@ -43,9 +37,7 @@ jobs:
           . .build/image-meta.env
           TAG="dpea-pi-$(date +%Y%m%d-%H%M)"
           IMG_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${IMG_FILE}"
-          # os-list.json = a Raspberry Pi Imager repo with one entry. init_format
-          # enables the Customisation panel; the constant asset name means
-          # .../releases/latest/download/os-list.json is a stable URL for Imager.
+          # init_format enables Imager's Customisation panel.
           jq -n \
             --arg url "$IMG_URL" \
             --arg date "$(date +%Y-%m-%d)" \
@@ -67,7 +59,7 @@ jobs:
           echo "IMG_FILE=$IMG_FILE" >> "$GITHUB_ENV"
 
       - name: Publish latest Release
-        if: github.event_name != 'pull_request'   # publish on push + manual dispatch
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

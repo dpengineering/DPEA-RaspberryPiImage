@@ -1,7 +1,3 @@
-# PR validation: make sure a change would still produce a working image before it
-# merges to main. Much cheaper than a full build: it runs the customization in a
-# container, not a full loop-mounted image.
-
 name: validate
 
 on:
@@ -18,7 +14,7 @@ jobs:
           shellcheck -S error build-image.sh customize.sh hardware-smoke-test.sh
 
   customize-in-container:
-    runs-on: ubuntu-24.04-arm      # native arm64 container
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
       - name: Run customize.sh in an arm64 Trixie container and assert
@@ -32,37 +28,25 @@ jobs:
               install -d -m 700 /etc/NetworkManager/system-connections
               install -m 600 /src/files/dpea-eth0.nmconnection \
                 /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
-              # Simulate the real RPi OS Desktop base, which already ships stock avahi.
-              # A bare Trixie container does NOT, so without this the avahi-dpea
-              # file-overwrite conflict (a missing Replaces:) stays hidden here and only
-              # surfaces on the real image build. Installing stock avahi first makes CI
-              # reproduce that conflict, which is the whole point of this gate.
+              # Reproduce replacement conflicts with the stock avahi package.
               apt-get install -y avahi-daemon libnss-mdns
-              # The real base image also ships an RPi-MODIFIED avahi-daemon.conf, so
-              # replacing it triggers an interactive dpkg conffile prompt that aborts a
-              # non-interactive install. Dirty the conffile here so CI reproduces that
-              # too, not just the file-overwrite conflict.
+              # Reproduce the conffile prompt caused by Raspberry Pi OS's modified config.
               echo '# dpea-ci: simulate a base-image modified conffile' >> /etc/avahi/avahi-daemon.conf
               bash /src/customize.sh
               echo "===== assertions ====="
               fail=0
               command -v uv >/dev/null && echo "OK   uv $(uv --version)" || { echo "FAIL uv"; fail=1; }
               dpkg -s avahi-dpea >/dev/null 2>&1 && echo "OK   avahi-dpea installed" || { echo "FAIL avahi-dpea"; fail=1; }
-              # It must actually take OVER the stock daemon binary, not just install
-              # alongside it. Replaces: transfers file ownership to avahi-dpea.
               dpkg -S /usr/sbin/avahi-daemon 2>/dev/null | grep -q '^avahi-dpea:' \
                 && echo "OK   /usr/sbin/avahi-daemon owned by avahi-dpea" \
                 || { echo "FAIL avahi-daemon binary not replaced by avahi-dpea"; fail=1; }
               for line in "dtparam=i2c_arm=on" "enable_uart=1" "dtoverlay=disable-bt"; do
                 grep -qx "$line" /boot/firmware/config.txt && echo "OK   config: $line" || { echo "FAIL config: $line"; fail=1; }
               done
-              # SPI must NOT be enabled: it would claim GPIO7 (SPI0 CE1), a DPi computer input.
               grep -qx "dtparam=spi=on" /boot/firmware/config.txt && { echo "FAIL config: spi should be off"; fail=1; } || echo "OK   config: spi not enabled"
-              # serial login console masked so the DPi RS485 bus owns /dev/serial0.
               test -L /etc/systemd/system/serial-getty@ttyAMA0.service && echo "OK   serial getty masked" || { echo "FAIL serial getty not masked"; fail=1; }
               test -f /etc/NetworkManager/system-connections/dpea-eth0.nmconnection \
                 && echo "OK   eth0 profile present" || { echo "FAIL eth0 profile"; fail=1; }
-              # best-effort: mDNS binds 5358 (a container may not let the daemon start; verify on hardware)
               (service dbus start >/dev/null 2>&1 || true; avahi-daemon -D >/dev/null 2>&1 || true; sleep 2)
               if ss -lun 2>/dev/null | grep -q ":5358"; then echo "OK   avahi listening on 5358"
               else echo "WARN could not confirm 5358 in container (verify on hardware)"; fi
