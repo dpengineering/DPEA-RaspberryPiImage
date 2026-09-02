@@ -24,7 +24,8 @@ jobs:
               apt-get update
               apt-get install -y --no-install-recommends curl ca-certificates iproute2 procps dbus
               mkdir -p /boot/firmware && : > /boot/firmware/config.txt
-              cp /src/packages.txt /tmp/packages.txt
+              # liblgpio-dev comes from Raspberry Pi OS and is unavailable in Debian.
+              grep -vx 'liblgpio-dev' /src/packages.txt > /tmp/packages.txt
               install -d -m 700 /etc/NetworkManager/system-connections
               install -m 600 /src/files/dpea-eth0.nmconnection \
                 /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
