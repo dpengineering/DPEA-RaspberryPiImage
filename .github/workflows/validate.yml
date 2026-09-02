@@ -19,8 +19,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run customize.sh in an arm64 Trixie container and assert
         run: |
-          docker run --rm -v "$PWD:/src" \
-            arm64v8/debian:trixie bash -euo pipefail -c '
+          docker run --rm -i -v "$PWD:/src" \
+            arm64v8/debian:trixie bash -euo pipefail <<'CONTAINER'
               apt-get update
               apt-get install -y --no-install-recommends curl ca-certificates iproute2 procps dbus
               mkdir -p /boot/firmware && : > /boot/firmware/config.txt
@@ -31,7 +31,7 @@ jobs:
               # Reproduce replacement conflicts with the stock avahi package.
               apt-get install -y avahi-daemon libnss-mdns
               # Reproduce the conffile prompt caused by Raspberry Pi OS's modified config.
-              echo '# dpea-ci: simulate a base-image modified conffile' >> /etc/avahi/avahi-daemon.conf
+              echo "# dpea-ci: simulate a base-image modified conffile" >> /etc/avahi/avahi-daemon.conf
               bash /src/customize.sh
               echo "===== assertions ====="
               fail=0
@@ -51,4 +51,4 @@ jobs:
               if ss -lun 2>/dev/null | grep -q ":5358"; then echo "OK   avahi listening on 5358"
               else echo "WARN could not confirm 5358 in container (verify on hardware)"; fi
               exit $fail
-            '
+          CONTAINER
