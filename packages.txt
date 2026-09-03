@@ -4,9 +4,9 @@ ca-certificates
 
 i2c-tools
 
-# lgpio has no aarch64 Python 3.13 wheel, so uv builds it from source.
+# lgpio has no aarch64 Python 3.13 wheel, so uv builds it from source. gcc/make/python3-dev
+# are already in the base image; swig and liblgpio-dev are the build deps beyond it.
 swig
-python3-dev
 liblgpio-dev
 
 libsdl2-2.0-0
