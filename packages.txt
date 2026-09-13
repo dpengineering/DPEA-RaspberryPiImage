@@ -1,6 +1,7 @@
 git
 curl
 ca-certificates
+vim
 
 i2c-tools
 
