@@ -45,6 +45,8 @@ curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin s
 
 chown root:root /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
 chmod 600      /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
+chown root:root /etc/udev/rules.d/91-odrive.rules
+chmod 644      /etc/udev/rules.d/91-odrive.rules
 
 apt-get clean
 rm -f /tmp/packages.txt

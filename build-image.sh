@@ -41,6 +41,7 @@ install -m 644 "$HERE/packages.txt" "$MNT/tmp/packages.txt"
 install -d -m 700 "$MNT/etc/NetworkManager/system-connections"
 install -m 600 "$HERE/files/dpea-eth0.nmconnection" \
 	"$MNT/etc/NetworkManager/system-connections/dpea-eth0.nmconnection"
+install -m 644 "$HERE/files/91-odrive.rules" "$MNT/etc/udev/rules.d/91-odrive.rules"
 install -m 755 "$HERE/customize.sh" "$MNT/tmp/customize.sh"
 chroot "$MNT" /bin/bash /tmp/customize.sh
 rm -f "$MNT/tmp/customize.sh"

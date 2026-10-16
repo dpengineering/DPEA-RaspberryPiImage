@@ -29,6 +29,7 @@ jobs:
               install -d -m 700 /etc/NetworkManager/system-connections
               install -m 600 /src/files/dpea-eth0.nmconnection \
                 /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
+              install -D -m 644 /src/files/91-odrive.rules /etc/udev/rules.d/91-odrive.rules
               # Reproduce replacement conflicts with the stock avahi package.
               apt-get install -y avahi-daemon libnss-mdns
               # Reproduce the conffile prompt caused by Raspberry Pi OS's modified config.
@@ -48,6 +49,8 @@ jobs:
               test -L /etc/systemd/system/serial-getty@ttyAMA0.service && echo "OK   serial getty masked" || { echo "FAIL serial getty not masked"; fail=1; }
               test -f /etc/NetworkManager/system-connections/dpea-eth0.nmconnection \
                 && echo "OK   eth0 profile present" || { echo "FAIL eth0 profile"; fail=1; }
+              test -f /etc/udev/rules.d/91-odrive.rules \
+                && echo "OK   odrive udev rule present" || { echo "FAIL odrive udev rule"; fail=1; }
               (service dbus start >/dev/null 2>&1 || true; avahi-daemon -D >/dev/null 2>&1 || true; sleep 2)
               if ss -lun 2>/dev/null | grep -q ":5358"; then echo "OK   avahi listening on 5358"
               else echo "WARN could not confirm 5358 in container (verify on hardware)"; fi
