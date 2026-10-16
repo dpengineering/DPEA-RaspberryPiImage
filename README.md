@@ -17,6 +17,8 @@ dependencies and installs them with `uv`.
   `172.17.21.2/22` for a direct laptop-to-Pi cable.
 - **mDNS**: the patched avahi that serves mDNS on port **5358**.
 - **Tooling**: `uv`, system-wide.
+- **ODrive USB**: a udev rule (`91-odrive.rules`) makes ODrive devices accessible
+  to non-root users, since `uv` cannot install udev rules.
 
 ### Shared apt packages (`packages.txt`)
 
