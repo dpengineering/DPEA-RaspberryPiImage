@@ -41,7 +41,8 @@ else
 	exit 1
 fi
 
-curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+UV_VERSION=0.10.2
+curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | env UV_INSTALL_DIR=/usr/local/bin sh
 
 chown root:root /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
 chmod 600      /etc/NetworkManager/system-connections/dpea-eth0.nmconnection
