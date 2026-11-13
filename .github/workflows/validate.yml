@@ -48,6 +48,7 @@ jobs:
               done
               grep -qx "dtparam=spi=on" /boot/firmware/config.txt && { echo "FAIL config: spi should be off"; fail=1; } || echo "OK   config: spi not enabled"
               test -L /etc/systemd/system/serial-getty@ttyAMA0.service && echo "OK   serial getty masked" || { echo "FAIL serial getty not masked"; fail=1; }
+              test -L /etc/systemd/system/tmp.mount && echo "OK   tmp.mount masked" || { echo "FAIL tmp.mount not masked"; fail=1; }
               test -f /etc/NetworkManager/system-connections/dpea-eth0.nmconnection \
                 && echo "OK   eth0 profile present" || { echo "FAIL eth0 profile"; fail=1; }
               test -f /etc/udev/rules.d/91-odrive.rules \

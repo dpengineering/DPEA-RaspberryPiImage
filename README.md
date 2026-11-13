@@ -8,6 +8,8 @@ dependencies and installs them with `uv`.
 ## What the image bakes in
 
 - **OS**: Raspberry Pi OS Trixie 64-bit (arm64), Desktop
+- **/tmp on the SD card**: tmp.mount is masked. Trixie otherwise mounts /tmp as a
+  tmpfs capped at half of RAM, which 1GB Pis run out of.
 - **Hardware**: I2C and UART enabled, SPI deliberately OFF. `dtoverlay=disable-bt`
   so `/dev/serial0` is the PL011 UART for the SlushEngine / DPi bus, and the serial
   login console is disabled so a getty does not fight that bus on the same port.
@@ -76,7 +78,7 @@ repo is public, so no GitHub account is needed to download the image.
 Runs `shellcheck`, then runs `customize.sh` inside an arm64 Trixie container
 and asserts what can be checked without hardware: `uv` present, the 5358 avahi
 `.deb` installed, the I2C/UART/shutdown config lines written (and SPI *not* enabled), the
-serial getty masked, and the eth0 NetworkManager profile present. This gates
+serial getty and tmp.mount masked, and the eth0 NetworkManager profile present. This gates
 merges to `main`.
 
 Container checks cannot exercise real hardware or multicast, so they do not cover
@@ -88,9 +90,10 @@ Those need a flashed Pi.
 
 After flashing a Pi, run `sudo ./hardware-smoke-test.sh` on it. It checks: `uv`
 present, `/dev/i2c-*` present and no `/dev/spidev*` (SPI off), `/dev/serial0 ->
-ttyAMA0` with the serial login console off, avahi listening on 5358 (and not
-5353), and eth0 holding `172.17.21.2`. For the direct-cable path, set another
-machine's ethernet to `172.17.21.1` and confirm you can reach `172.17.21.2`.
+ttyAMA0` with the serial login console off, /tmp on the SD card rather than tmpfs,
+avahi listening on 5358 (and not 5353), and eth0 holding `172.17.21.2`. For the
+direct-cable path, set another machine's ethernet to `172.17.21.1` and confirm you
+can reach `172.17.21.2`.
 
 ## Files
 
