@@ -13,6 +13,9 @@ dependencies and installs them with `uv`.
   login console is disabled so a getty does not fight that bus on the same port.
   `i2c-dev` loaded. SPI stays off because the DPi computer uses GPIO7 (SPI0 CE1) as
   a digital input, which an SPI overlay would claim ("GPIO busy").
+- **Power-loss shutdown**: `dtoverlay=gpio-shutdown,gpio_pin=21,active_low=0,gpio_pull=down`,
+  so the Pi shuts down cleanly when the DPi computer board drives GPIO21 high on
+  battery power.
 - **Networking (`eth0`)**: DHCP for internet, plus an always-on static
   `172.17.21.2/22` for a direct laptop-to-Pi cable.
 - **mDNS**: the patched avahi that serves mDNS on port **5358**.
@@ -72,12 +75,13 @@ repo is public, so no GitHub account is needed to download the image.
 
 Runs `shellcheck`, then runs `customize.sh` inside an arm64 Trixie container
 and asserts what can be checked without hardware: `uv` present, the 5358 avahi
-`.deb` installed, the I2C/UART config lines written (and SPI *not* enabled), the
+`.deb` installed, the I2C/UART/shutdown config lines written (and SPI *not* enabled), the
 serial getty masked, and the eth0 NetworkManager profile present. This gates
 merges to `main`.
 
 Container checks cannot exercise real hardware or multicast, so they do not cover
-actual I2C/UART function, live `.local` resolution, or the eth0 address coming up.
+actual I2C/UART function, the GPIO21 power-loss shutdown, live `.local` resolution,
+or the eth0 address coming up.
 Those need a flashed Pi.
 
 ### On real hardware (`hardware-smoke-test.sh`)

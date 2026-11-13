@@ -16,6 +16,10 @@ grep -q '^enable_uart=1'        "$CONFIG" || echo 'enable_uart=1'        >> "$CO
 grep -q '^dtoverlay=disable-bt' "$CONFIG" || echo 'dtoverlay=disable-bt' >> "$CONFIG"
 grep -q '^i2c-dev' /etc/modules || echo 'i2c-dev' >> /etc/modules
 
+# The DPi computer board drives GPIO21 high on battery power to request a clean shutdown.
+grep -q '^dtoverlay=gpio-shutdown' "$CONFIG" \
+	|| echo 'dtoverlay=gpio-shutdown,gpio_pin=21,active_low=0,gpio_pull=down' >> "$CONFIG"
+
 # The default serial getty competes with the DPi RS485 bus for /dev/serial0.
 CMDLINE=/boot/firmware/cmdline.txt
 [ -f "$CMDLINE" ] || CMDLINE=/boot/cmdline.txt
