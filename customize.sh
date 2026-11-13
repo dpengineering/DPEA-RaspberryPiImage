@@ -27,6 +27,9 @@ CMDLINE=/boot/firmware/cmdline.txt
 install -d /etc/systemd/system
 ln -sf /dev/null /etc/systemd/system/serial-getty@ttyAMA0.service
 
+# A tmpfs /tmp is capped at half of RAM, which 1GB Pis run out of.
+ln -sf /dev/null /etc/systemd/system/tmp.mount
+
 AVAHI_DEB_URL="${AVAHI_DEB_URL:-https://github.com/dpengineering/avahi_0.8/releases/latest/download/avahi-dpea_0.8_arm64.deb}"
 if curl -fLsS "$AVAHI_DEB_URL" -o /tmp/avahi.deb; then
 	# Keep Raspberry Pi OS's modified config to avoid an interactive dpkg prompt.
